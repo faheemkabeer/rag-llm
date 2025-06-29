@@ -12,10 +12,8 @@ This project is a **Retrieval-Augmented Generation (RAG) Chatbot** that allows u
 4. [▶️ Run the App](#️-run-the-app)  
 5. [🧾 Example Use Case](#-example-use-case)  
 6. [📦 Requirements](#-requirements)  
-7. [📸 Screenshot](#-screenshot) *(optional)*  
-8. [🙋 Author](#-author)  
-9. [📜 License](#-license)  
-10. [🙌 Acknowledgements](#-acknowledgements)  
+
+
 
 ---
 
@@ -84,9 +82,6 @@ Gemini will respond using only the most relevant context extracted from your doc
 📦 Requirements
 Here’s what you’ll need (also saved in requirements.txt):
 
-nginx
-Copy
-Edit
 streamlit
 PyMuPDF
 faiss-cpu
