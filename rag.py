@@ -1,14 +1,18 @@
-import fitz  # PyMuPDF
+import fitz  
 from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
-import requests
 import streamlit as st
+import google.generativeai as genai
 import os
-import re
 
 # ----------------------------
-# 1. Load PDF and Extract Text
+# 1. Configure Gemini API
+# ----------------------------
+genai.configure(api_key="YOUR_API_KEY_HERE")
+
+# ----------------------------
+# 2. Load PDF and Extract Text
 # ----------------------------
 def load_pdf(path):
     doc = fitz.open(path)
@@ -18,7 +22,7 @@ def load_pdf(path):
     return text
 
 # ----------------------------
-# 2. Split Text into Chunks
+# 3. Split Text into Chunks
 # ----------------------------
 def split_text(text, chunk_size=500, overlap=50):
     chunks = []
@@ -30,9 +34,13 @@ def split_text(text, chunk_size=500, overlap=50):
     return chunks
 
 # ----------------------------
-# 3. Generate Embeddings & Store
+# 4. Load Embedding Model (with caching)
 # ----------------------------
-model = SentenceTransformer('all-MiniLM-L6-v2')
+@st.cache_resource
+def load_embedding_model():
+    return SentenceTransformer('all-MiniLM-L6-v2')
+
+model = load_embedding_model()
 
 def create_vectorstore(chunks):
     embeddings = model.encode(chunks)
@@ -41,7 +49,7 @@ def create_vectorstore(chunks):
     return index, embeddings, chunks
 
 # ----------------------------
-# 4. Retrieve Top Chunks
+# 5. Retrieve Top Chunks
 # ----------------------------
 def retrieve(query, index, chunks, k=3):
     q_embed = model.encode([query])
@@ -49,40 +57,27 @@ def retrieve(query, index, chunks, k=3):
     return [chunks[i] for i in indices[0]]
 
 # ----------------------------
-# 5. Query Ollama via REST API
+# 6. Query Gemini (now using gemini-2.5-pro)
 # ----------------------------
-def query_ollama(prompt, model="gemma:2b"):
+def query_gemini(prompt, model_name="gemini-2.5-pro"):
     try:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": model,
-                "prompt": prompt,
-                "stream": False
-            }
-        )
-        if response.status_code == 200:
-            result = response.json()["response"]
-            return result.strip()
-        else:
-            return f"❌ Error from Ollama:\n{response.text}"
-    except requests.exceptions.RequestException as e:
-        return f"⚠️ Failed to connect to Ollama:\n{str(e)}"
+        model = genai.GenerativeModel(f"models/{model_name}")
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"❌ Error: {e}"
 
 # ----------------------------
-# 6. RAG Pipeline
+# 7. RAG Pipeline
 # ----------------------------
 def rag_chat(query, pdf_path):
     text = load_pdf(pdf_path)
-    if not text.strip():
-        return "❌ The uploaded PDF appears to have no extractable text."
-
     chunks = split_text(text)
     index, _, stored_chunks = create_vectorstore(chunks)
     top_contexts = retrieve(query, index, stored_chunks)
 
     context = "\n\n".join(top_contexts)
-    prompt = f"""You are an AI assistant. Use the below context to answer the question.
+    prompt = f"""You are a helpful and knowledgeable assistant. Use the following context to answer the user's question clearly and concisely.
 
 Context:
 {context}
@@ -91,23 +86,26 @@ Question: {query}
 
 Answer:"""
 
-    return query_ollama(prompt)
+    return query_gemini(prompt)
 
 # ----------------------------
-# 7. Streamlit Interface
+# 8. Streamlit Interface
 # ----------------------------
-st.set_page_config(page_title="RAG Chatbot with Ollama")
-st.title("🤖 RAG Chatbot using Ollama + FAISS")
+st.set_page_config(page_title="RAG Chatbot with Gemini")
+st.title("🤖 RAG Chatbot using Gemini + FAISS")
 
-uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
-query = st.text_input("Ask something from the document:")
+uploaded_file = st.file_uploader("📄 Upload a PDF", type="pdf")
+query = st.text_input("❓ Ask something from the document:")
 
 if uploaded_file:
     with open("temp.pdf", "wb") as f:
         f.write(uploaded_file.read())
 
-    if query:
-        with st.spinner("🧠 Thinking..."):
+    if query.strip():
+        with st.spinner("🔍 Analyzing..."):
             answer = rag_chat(query, "temp.pdf")
-        st.markdown("### 📌 Answer")
+        st.markdown("### ✅ Answer")
         st.write(answer)
+
+        # ✅ Clean up the uploaded file
+        os.remove("temp.pdf")
