@@ -1,90 +1,100 @@
-# 🤖 RAG Chatbot using Gemini + FAISS + Streamlit
+# 🤖 RAG Chatbot using Gemini 2.5 + FAISS
 
-This project is a **Retrieval-Augmented Generation (RAG) Chatbot** that allows users to upload a PDF document and ask questions about its contents. It uses Google **Gemini Pro** for generating answers, **FAISS** for vector-based semantic search, **Sentence Transformers** for embedding generation, and **Streamlit** for the web interface.
-
----
-
-## 📚 Table of Contents
-
-1. [🔍 Overview](#-overview)  
-2. [🚀 Features](#-features)  
-3. [🛠️ Setup Instructions](#️-setup-instructions)  
-4. [▶️ Run the App](#️-run-the-app)  
-5. [🧾 Example Use Case](#-example-use-case)  
-6. [📦 Requirements](#-requirements)  
-
-
+A powerful AI assistant that answers questions from any uploaded **PDF document** using **Google Gemini 2.5 Pro** and **FAISS**-based vector search. This chatbot implements **Retrieval-Augmented Generation (RAG)** to ground responses in actual document content, increasing accuracy and reducing hallucination.
 
 ---
 
-## 🔍 Overview
+## 📌 Project Overview
 
-The app takes a PDF file, extracts its content, splits it into overlapping chunks, converts each chunk into vector embeddings using `SentenceTransformer`, indexes the embeddings using **FAISS**, retrieves the most relevant chunks for a user query, and finally queries **Gemini Pro** to generate a contextual answer.
+This chatbot combines document retrieval and large language model (LLM) generation in a seamless web interface. Instead of relying only on the LLM’s memory, it intelligently pulls relevant content from an uploaded PDF and uses that as context for Gemini to generate a grounded response.
 
----
-
-## 🚀 Features
-
-- 📄 PDF Upload
-- 🧠 Text Chunking with Overlap
-- 🔍 Semantic Search with FAISS
-- 🤖 Query Generation using Gemini
-- 💻 Easy-to-use Web Interface via Streamlit
+> Example: Upload a Python PDF and ask “Explain the logic behind prime number checking.” The bot will fetch the relevant section and answer in plain language.
 
 ---
 
-## 🛠️ Setup Instructions
+## 🧱 Architecture
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/yourusername/rag-chatbot-gemini.git
-cd rag-chatbot-gemini
-2. Create and Activate a Virtual Environment
+```text
+User → Uploads PDF
+         ↓
+  PyMuPDF → Extract text
+         ↓
+Split into overlapping chunks
+         ↓
+Encode with SentenceTransformer
+         ↓
+Store embeddings in FAISS
+         ↓
+User asks a query
+         ↓
+Embed the query → Search top-k chunks
+         ↓
+Pass context + question → Gemini 2.5 Pro
+         ↓
+             ⬇
+         Generated answer
+⚙️ Technologies Used
+Component	Library / Tool
+PDF Text Extraction	PyMuPDF
+Vector Search	FAISS
+Embeddings	sentence-transformers
+Language Model	Gemini 2.5 Pro (Google Generative AI)
+Web Interface	Streamlit
+
+🧠 Key Features
+📄 Upload any .pdf document (lecture notes, guides, etc.)
+
+🔍 Asks questions and retrieves the most relevant sections
+
+💬 Gemini generates natural language answers from context
+
+🧠 Embedding-based retrieval to ensure factual grounding
+
+⚡ Fast, responsive, and runs entirely on your machine
+
+📦 Installation
+1. Clone this Repository
 bash
 Copy
 Edit
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-3. Install Dependencies
+git clone https://github.com/yourusername/rag-chatbot-gemini.git
+cd rag-chatbot-gemini
+2. Install Dependencies
 bash
 Copy
 Edit
 pip install -r requirements.txt
-4. Set Your Gemini API Key
-In app.py, replace:
+🔐 API Key Setup
+Create a free Gemini API key at https://makersuite.google.com/app/api
+
+Edit app.py and replace:
 
 python
 Copy
 Edit
-genai.configure(api_key="YOUR_API_KEY")
-with your actual Gemini API key.
+genai.configure(api_key="YOUR_API_KEY_HERE")
+🔒 Tip: Use environment variables or .env files to avoid hardcoding secrets.
 
-Note: For security, it's better to store API keys in environment variables in production.
-
-▶️ Run the App
+🚀 Run the App
 bash
 Copy
 Edit
 streamlit run app.py
-The app will open in your browser. You can now upload a PDF and ask questions based on its content.
+Then open http://localhost:8501 in your browser.
 
-🧾 Example Use Case
-Upload a research paper or document, then ask questions like:
+📁 File Structure
+bash
+Copy
+Edit
+rag-chatbot-gemini/
+├── app.py               # Main application logic
+├── requirements.txt     # Python dependencies
+└── README.md            # Documentation
+📌 Use Cases
+📚 Study assistant for students — Ask questions from lecture notes
 
-“Summarize the conclusion section.”
+📄 Legal/Finance document summarization
 
-“What methodology was used?”
+🧠 Quick reference for technical documentation
 
-“What are the key findings?”
-
-Gemini will respond using only the most relevant context extracted from your document.
-
-📦 Requirements
-Here’s what you’ll need (also saved in requirements.txt):
-
-streamlit
-PyMuPDF
-faiss-cpu
-sentence-transformers
-numpy
-google-generativeai
+🗃️ Personal knowledge base with offline PDFs
