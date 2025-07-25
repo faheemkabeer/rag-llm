@@ -97,4 +97,4 @@ rag-chatbot-gemini/
 
 🧠 Quick reference for technical documentation
 
-🗃️ Personal knowledge base with offline PDFs
+🗃️ Personal knowledge base with offline PDFs..
